@@ -1559,6 +1559,11 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
             mBackdropFrameRenderer.onConfigurationChange();
         }
         mWindow.onViewRootImplSet(getViewRootImpl());
+        // region @cobra
+        // After attached to window, we should update the decor caption
+        // shade with current windowing mode.
+        updateDecorCaptionShade();
+        // endregion
     }
 
     @Override
@@ -1834,6 +1839,11 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
             DecorContext decorContext = (DecorContext) context;
             decorContext.setPhoneWindow(mWindow);
         }
+        // region @cobra
+        // After setting mPhoneWindow, we should update the decor caption
+        // shade with current windowing mode.
+        updateDecorCaptionShade();
+        // endregion
     }
 
     @Override
