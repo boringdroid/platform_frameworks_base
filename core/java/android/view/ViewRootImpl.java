@@ -1342,6 +1342,7 @@ public final class ViewRootImpl implements ViewParent,
                 renderer.setStopped(mStopped);
             }
             if (!mStopped) {
+                mWindowAttributesChanged = true;
                 scheduleTraversals();
             } else {
                 if (renderer != null) {
