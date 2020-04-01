@@ -383,9 +383,15 @@ public class OverviewProxyService implements CallbackController<OverviewProxyLis
     }
 
     private void updateEnabledState() {
+        // region @boringdroid
+        // Before there is an ideal overview implementation, we will disable the
+        // overview proxy service.
+        /*
         mIsEnabled = mContext.getPackageManager().resolveServiceAsUser(mQuickStepIntent,
                 MATCH_DIRECT_BOOT_UNAWARE,
                 ActivityManagerWrapper.getInstance().getCurrentUserId()) != null;
+        */
+        // endregion
     }
 
     @Override

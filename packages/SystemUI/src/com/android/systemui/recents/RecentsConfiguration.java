@@ -91,7 +91,11 @@ public class RecentsConfiguration {
         Resources res = mAppContext.getResources();
         fakeShadows = res.getBoolean(R.bool.config_recents_fake_shadows);
         svelteLevel = res.getInteger(R.integer.recents_svelte_level);
-        isGridEnabled = SystemProperties.getBoolean("ro.recents.grid", false);
+        // region @boringdroid
+        // Enable grid recents default.
+        // isGridEnabled = SystemProperties.getBoolean("ro.recents.grid", false);
+        isGridEnabled = SystemProperties.getBoolean("ro.recents.grid", true);
+        // endregion
         isLowRamDevice = ActivityManager.isLowRamDeviceStatic();
         dragToSplitEnabled = !isLowRamDevice;
 
