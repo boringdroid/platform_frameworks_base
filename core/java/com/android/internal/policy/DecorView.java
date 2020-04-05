@@ -17,6 +17,7 @@
 package com.android.internal.policy;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
+import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
 import static android.os.Build.VERSION_CODES.M;
 import static android.os.Build.VERSION_CODES.N;
@@ -51,6 +52,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.annotation.Nullable;
 import android.annotation.TestApi;
+import android.app.Activity;
 import android.app.WindowConfiguration;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.content.Context;
@@ -411,6 +413,20 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         }
 
         if (!mWindow.isDestroyed()) {
+            // region @boringdroid
+            if (keyCode == KeyEvent.KEYCODE_F11 && isDown) {
+                final Window.WindowControllerCallback callback =
+                    mWindow.getWindowControllerCallback();
+                final int windowingMode =
+                        getResources().getConfiguration().windowConfiguration.getWindowingMode();
+                if ((windowingMode == WINDOWING_MODE_FREEFORM || windowingMode == WINDOWING_MODE_FULLSCREEN)
+		    && callback != null) {
+                    callback.toggleFreeformWindowingMode();
+                    updateDecorCaptionShade();
+                }
+                return true;
+            }
+            // endregion
             final Window.Callback cb = mWindow.getCallback();
             final boolean handled = cb != null && mFeatureId < 0 ? cb.dispatchKeyEvent(event)
                     : super.dispatchKeyEvent(event);
