@@ -7622,7 +7622,7 @@ public class WindowManagerService extends IWindowManager.Stub
             }
         }
     }
-    // region @cobra
+    // region @boringdroid
     private static final String PACKAGE_WINDOWING_MODE_NAME = "package-windowing-mode";
     private static final String PACKAGE_WINDOW_BOUNDS_NAME = "package-window-bounds";
 

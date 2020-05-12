@@ -912,7 +912,7 @@ class RecentTasks {
                     mTasks.remove(taskIndex);
                     mTasks.add(0, task);
                     notifyTaskPersisterLocked(task, false);
-                    // region @cobra
+                    // region @boringdroid
                     ActivityManagerService service = mService;
                     UserInfo userInfo = service.getCurrentUser();
                     String origActivity =
@@ -957,7 +957,7 @@ class RecentTasks {
             // handle it as part of an affilated task, then just place it at the top.
             mTasks.add(0, task);
             notifyTaskAdded(task);
-            // region @cobra
+            // region @boringdroid
             ActivityManagerService service = mService;
             UserInfo userInfo = service.getCurrentUser();
             String origActivity =
