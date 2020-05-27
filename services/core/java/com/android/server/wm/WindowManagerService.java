@@ -7648,7 +7648,7 @@ public class WindowManagerService extends IWindowManager.Stub
     /**
      * @hide
      */
-    public static WindowManagerService getCobraInstance() {
+    public static WindowManagerService getBoringInstance() {
         return getInstance();
     }
 
