@@ -8821,10 +8821,10 @@ public class PackageManagerService extends IPackageManager.Stub
                     + " better than this " + pkg.getLongVersionCode());
         }
 
-        // Verify certificates against what was last scanned. If it is an updated priv app, we will
-        // force re-collecting certificate.
-        final boolean forceCollect = PackageManagerServiceUtils.isApkVerificationForced(
-                disabledPkgSetting);
+        // Verify certificates against what was last scanned. If there was an upgrade or this is an
+        // updated priv app, we will force re-collecting certificate.
+        final boolean forceCollect = mIsUpgrade ||
+                PackageManagerServiceUtils.isApkVerificationForced(disabledPkgSetting);
         // Full APK verification can be skipped during certificate collection, only if the file is
         // in verified partition, or can be verified on access (when apk verity is enabled). In both
         // cases, only data in Signing Block is verified instead of the whole file.
@@ -18141,6 +18141,12 @@ public class PackageManagerService extends IPackageManager.Stub
     @Override
     public boolean isPackageDeviceAdminOnAnyUser(String packageName) {
         final int callingUid = Binder.getCallingUid();
+        if (checkUidPermission(android.Manifest.permission.MANAGE_USERS, callingUid)
+                != PERMISSION_GRANTED) {
+            EventLog.writeEvent(0x534e4554, "128599183", -1, "");
+            throw new SecurityException(android.Manifest.permission.MANAGE_USERS
+                    + " permission is required to call this API");
+        }
         if (getInstantAppPackageName(callingUid) != null
                 && !isCallerSameApp(packageName, callingUid)) {
             return false;
