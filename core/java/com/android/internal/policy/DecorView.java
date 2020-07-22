@@ -250,6 +250,15 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
     private final Paint mVerticalResizeShadowPaint = new Paint();
     private final Paint mHorizontalResizeShadowPaint = new Paint();
 
+    // region @boringdroid
+    private float mWindowCornerRadius = 8;
+    private ViewOutlineProvider mWindowOutline = new ViewOutlineProvider() {
+        @Override
+        public void getOutline(View view, Outline outline) {
+            outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), mWindowCornerRadius);
+        }
+    };
+    // endregion
     DecorView(Context context, int featureId, PhoneWindow window,
             WindowManager.LayoutParams params) {
         super(context);
@@ -277,6 +286,9 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         mResizeShadowSize = context.getResources().getDimensionPixelSize(
                 R.dimen.resize_shadow_size);
         initResizingPaints();
+        // region @boringdroid
+        mWindowCornerRadius = context.getResources().getDimension(R.dimen.decor_corner_radius);
+        // endregion
     }
 
     void setBackgroundFallback(int resId) {
@@ -1853,6 +1865,9 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
             // Configuration now requires a caption.
             final LayoutInflater inflater = mWindow.getLayoutInflater();
             mDecorCaptionView = createDecorCaptionView(inflater);
+            // region @boringdroid
+            updateWindowCorner();
+            // endregion
             if (mDecorCaptionView != null) {
                 if (mDecorCaptionView.getParent() == null) {
                     addView(mDecorCaptionView, 0,
@@ -1882,6 +1897,9 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         }
 
         mDecorCaptionView = createDecorCaptionView(inflater);
+        // region @boringdroid
+        updateWindowCorner();
+        // endregion
         final View root = inflater.inflate(layoutResource, null);
         if (mDecorCaptionView != null) {
             if (mDecorCaptionView.getParent() == null) {
@@ -1987,6 +2005,17 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         }
     }
 
+    // region @boringdroid
+    private void updateWindowCorner() {
+        if (mDecorCaptionView == null) {
+            setClipToOutline(false);
+            setOutlineProvider(null);
+        } else {
+            setOutlineProvider(mWindowOutline);
+            setClipToOutline(true);
+        }
+    }
+    // endregion
     void updateDecorCaptionShade() {
         if (mDecorCaptionView != null) {
             setDecorCaptionShade(getContext(), mDecorCaptionView);
