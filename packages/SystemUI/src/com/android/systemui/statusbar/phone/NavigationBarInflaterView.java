@@ -19,8 +19,10 @@ import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_3BUTTON;
 
 import android.annotation.Nullable;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.drawable.Icon;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
@@ -33,9 +35,11 @@ import android.widget.LinearLayout;
 import android.widget.Space;
 
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.systemui.BoringdroidConfig;
 import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.recents.OverviewProxyService;
+import com.android.systemui.shared.plugins.PluginManagerImpl;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.statusbar.phone.ReverseLinearLayout.ReverseRelativeLayout;
 import com.android.systemui.statusbar.policy.KeyButtonView;
@@ -139,7 +143,13 @@ public class NavigationBarInflaterView extends FrameLayout
                 : mOverviewProxyService.shouldShowSwipeUpUI()
                         ? R.string.config_navBarLayoutQuickstep
                         : R.string.config_navBarLayout;
-        return getContext().getString(defaultResource);
+        // region @boringdroid
+        if (BoringdroidConfig.IS_SYSTEMUI_PLUGIN_ENABLED) {
+            return getContext().getString(R.string.boring_config_navBarLayout);
+        } else {
+            return getContext().getString(defaultResource);
+        }
+        // endregion
     }
 
     @Override
@@ -160,6 +170,15 @@ public class NavigationBarInflaterView extends FrameLayout
         if (!Objects.equals(mCurrentLayout, newValue)) {
             clearViews();
             inflateLayout(newValue);
+            // region @boringdroid
+            if (BoringdroidManager.IS_SYSTEMUI_PLUGIN_ENABLED) {
+                Intent intent = new Intent(
+                        PluginManagerImpl.PLUGIN_CHANGED,
+                        Uri.fromParts("package", "com.boringdroid.systemui", null)
+                );
+                getContext().sendBroadcast(intent);
+            }
+            // endregion
         }
     }
 
@@ -399,6 +418,17 @@ public class NavigationBarInflaterView extends FrameLayout
                 }
             }
         }
+        // region @boringdroid
+        if (BoringdroidConfig.IS_SYSTEMUI_PLUGIN_ENABLED && v instanceof KeyButtonView) {
+            ViewGroup.LayoutParams layoutParams = v.getLayoutParams();
+            layoutParams.width =
+                    (int) v.getContext()
+                            .getResources()
+                            .getDimension(R.dimen.boring_navigation_key_width);
+            v.setLayoutParams(layoutParams);
+            v.setPadding(0, v.getPaddingTop(), 0, v.getPaddingBottom());
+        }
+        // endregion
         return v;
     }
 
