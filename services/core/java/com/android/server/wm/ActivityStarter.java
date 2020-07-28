@@ -113,6 +113,7 @@ import android.util.DebugUtils;
 import android.util.Pools.SynchronizedPool;
 import android.util.Slog;
 
+import com.android.internal.BoringdroidManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.HeavyWeightSwitcherActivity;
 import com.android.internal.app.IVoiceInteractor;
@@ -1591,7 +1592,19 @@ class ActivityStarter {
             boolean restrictedBgActivity, NeededUriGrants intentGrants) {
         setInitialState(r, options, inTask, doResume, startFlags, sourceRecord, voiceSession,
                 voiceInteractor, restrictedBgActivity);
-
+        // region @boringdroid
+        if (mOptions == null) {
+            mOptions = ActivityOptions.makeBasic();
+        }
+        if (mOptions.getLaunchWindowingMode() == WINDOWING_MODE_UNDEFINED) {
+            mOptions.setLaunchWindowingMode(
+                    BoringdroidManager.getPackageWindowingMode(
+                            WindowManagerService.getWMSContext(),
+                            mStartActivity.info.packageName
+                    )
+            );
+        }
+        // endregion
         computeLaunchingTaskFlags();
 
         computeSourceStack();

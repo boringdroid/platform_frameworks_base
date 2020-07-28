@@ -146,6 +146,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManagerInternal;
@@ -8272,4 +8273,13 @@ public class WindowManagerService extends IWindowManager.Stub
             Binder.restoreCallingIdentity(origId);
         }
     }
+
+    // region @boringdroid
+    /**
+     * @hide
+     */
+    public static Context getWMSContext() {
+        return getInstance().mContext;
+    }
+    // endregion
 }
