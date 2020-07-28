@@ -23,6 +23,7 @@ import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_RECENTS;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
+import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN_OR_SPLIT_SCREEN_SECONDARY;
 import static android.app.WindowConfiguration.WINDOWING_MODE_PINNED;
@@ -2249,6 +2250,26 @@ class RootActivityContainer extends ConfigurationContainer
         }
 
         // Implicitly, this case is MATCH_TASK_IN_STACKS_OR_RECENT_TASKS_AND_RESTORE
+        // region @boringdroid
+        int windowingMode = WINDOWING_MODE_UNDEFINED;
+        if (aOptions == null) {
+            aOptions = ActivityOptions.makeBasic();
+        }
+        Intent intent = task.intent;
+        ComponentName realActivity = task.realActivity;
+        String packageName = null;
+        if (realActivity != null) {
+            packageName = realActivity.getPackageName();
+        }
+        if (packageName == null && intent != null && intent.getComponent() != null) {
+            packageName = intent.getComponent().getPackageName();
+        }
+        windowingMode = packageName == null
+                ? windowingMode : mWindowManager.getPackageWindowingMode(packageName);
+        if (windowingMode == WINDOWING_MODE_FREEFORM) {
+            aOptions.setLaunchWindowingMode(windowingMode);
+        }
+        // endregion
         if (!mStackSupervisor.restoreRecentTaskLocked(task, aOptions, onTop)) {
             if (DEBUG_RECENTS) Slog.w(TAG_RECENTS,
                     "Couldn't restore task id=" + id + " found in recents");

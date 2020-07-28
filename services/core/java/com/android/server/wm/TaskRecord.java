@@ -609,6 +609,10 @@ class TaskRecord extends ConfigurationContainer {
                 }
             }
             mTask.resize(kept, forced);
+            // region @boringdroid
+            // After window resizes its bounds (real resize and move), we should save the window bounds.
+            saveTaskBounds();
+            // endregion
 
             saveLaunchingStateIfNeeded();
 
@@ -622,8 +626,32 @@ class TaskRecord extends ConfigurationContainer {
     // TODO: Investigate combining with the resize() method above.
     void resizeWindowContainer() {
         mTask.resize(false /* relayout */, false /* forced */);
+        // region @boringdroid
+        // After window resizes its bounds (real resize and move), we should save the window bounds.
+        saveTaskBounds();
+        // endregion
     }
 
+    // region @boringdroid
+    private void saveTaskBounds() {
+        Rect savedBounds = new Rect();
+        if (mTask != null) {
+            mTask.getBounds(savedBounds);
+        }
+        String packageName = null;
+        if (realActivity != null) {
+            packageName = realActivity.getPackageName();
+        } else if (getRootActivity() != null) {
+            packageName = getRootActivity().packageName;
+        }
+        if (mStack != null
+                && mStack.getWindowingMode() == WINDOWING_MODE_FREEFORM
+                && !savedBounds.isEmpty()
+                && packageName != null) {
+            WindowManagerService.getWMSInstance().savePackageWindowBounds(packageName, savedBounds);
+        }
+    }
+    // endregion
     void getWindowContainerBounds(Rect bounds) {
         if (mTask != null) {
             mTask.getBounds(bounds);
@@ -2347,6 +2375,30 @@ class TaskRecord extends ConfigurationContainer {
         } else if (!getWindowConfiguration().persistTaskBounds()) {
             return mStack.getRequestedOverrideBounds();
         }
+        // region @boringdroid
+        if (mLastNonFullscreenBounds == null) {
+            String packageName = null;
+            if (realActivity != null) {
+                packageName = realActivity.getPackageName();
+            } else if (getRootActivity() != null) {
+                packageName = getRootActivity().packageName;
+            }
+            mLastNonFullscreenBounds =
+                    packageName != null
+                            ? WindowManagerService.getWMSInstance().getPackageWindowBounds(packageName)
+                            : new Rect();
+            if (!mLastNonFullscreenBounds.isEmpty()) {
+                return mLastNonFullscreenBounds;
+            }
+            getParent().getBounds(mLastNonFullscreenBounds);
+            int width = mLastNonFullscreenBounds.width() / 2;
+            int height = mLastNonFullscreenBounds.height() / 2;
+            int left = mLastNonFullscreenBounds.left + width / 2;
+            int top = mLastNonFullscreenBounds.top + height / 2;
+            mLastNonFullscreenBounds.set(left, top, left + width, top + height);
+            adjustForMinimalTaskDimensions(mLastNonFullscreenBounds, new Rect());
+        }
+        // endregion
         return mLastNonFullscreenBounds;
     }
 

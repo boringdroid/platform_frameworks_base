@@ -1477,7 +1477,18 @@ class ActivityStarter {
             ActivityRecord[] outActivity, boolean restrictedBgActivity) {
         setInitialState(r, options, inTask, doResume, startFlags, sourceRecord, voiceSession,
                 voiceInteractor, restrictedBgActivity);
-
+        // region @boringdroid
+        if (mOptions == null) {
+            mOptions = ActivityOptions.makeBasic();
+        }
+        if (mOptions.getLaunchWindowingMode() == WINDOWING_MODE_UNDEFINED) {
+            mOptions.setLaunchWindowingMode(
+                    WindowManagerService
+                            .getWMSInstance()
+                            .getPackageWindowingMode(mStartActivity.info.packageName)
+            );
+        }
+        // endregion
         final int preferredWindowingMode = mLaunchParams.mWindowingMode;
 
         computeLaunchingTaskFlags();

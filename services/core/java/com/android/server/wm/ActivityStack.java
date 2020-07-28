@@ -798,6 +798,12 @@ class ActivityStack extends ConfigurationContainer {
             // setWindowingMode triggers an onConfigurationChanged cascade which can result in a
             // different resolved windowing mode (usually when preferredWindowingMode is UNDEFINED).
             windowingMode = getWindowingMode();
+            // region @boringdroid
+            // When stack's windowing mode changed, we will persist this windowing mode for top activity.
+            if (topActivity != null) {
+                mWindowManager.savePackageWindowingMode(topActivity.appInfo.packageName, windowingMode);
+            }
+            // endregion
 
             if (creating) {
                 // Nothing else to do if we don't have a window container yet. E.g. call from ctor.
@@ -3140,6 +3146,14 @@ class ActivityStack extends ConfigurationContainer {
             boolean newTask, boolean keepCurTransition, ActivityOptions options) {
         TaskRecord rTask = r.getTaskRecord();
         final int taskId = rTask.taskId;
+        // region @boringdroid
+        // When creating task, the topActivity is null when invoking setWindowingMode,
+        // so we should save package windowing mode after task created. And saving
+        // windowing mode in setWindowingMode will be used to save windowing mode when
+        // changing windowing mode dynamically after task created, for example clicking
+        // maximize button to move task to fullscreen stack from freefrom stack.
+        mWindowManager.savePackageWindowingMode(r.packageName, getWindowingMode());
+        // endregion
         final boolean allowMoveToFront = options == null || !options.getAvoidMoveToFront();
         // mLaunchTaskBehind tasks get placed at the back of the task stack.
         if (!r.mLaunchTaskBehind && allowMoveToFront
