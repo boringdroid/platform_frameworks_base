@@ -118,6 +118,7 @@ import android.util.EventLog;
 import android.util.Pools.SynchronizedPool;
 import android.util.Slog;
 
+import com.android.internal.BoringdroidManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.HeavyWeightSwitcherActivity;
 import com.android.internal.app.IVoiceInteractor;
@@ -1483,9 +1484,10 @@ class ActivityStarter {
         }
         if (mOptions.getLaunchWindowingMode() == WINDOWING_MODE_UNDEFINED) {
             mOptions.setLaunchWindowingMode(
-                    WindowManagerService
-                            .getWMSInstance()
-                            .getPackageWindowingMode(mStartActivity.info.packageName)
+                    BoringdroidManager.getPackageWindowingMode(
+                            WindowManagerService.getWMSContext(),
+                            mStartActivity.info.packageName
+                    )
             );
         }
         // endregion

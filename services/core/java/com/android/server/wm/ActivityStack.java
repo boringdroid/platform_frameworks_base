@@ -153,6 +153,7 @@ import android.util.Slog;
 import android.util.proto.ProtoOutputStream;
 import android.view.Display;
 
+import com.android.internal.BoringdroidManager;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.IVoiceInteractor;
@@ -801,7 +802,9 @@ class ActivityStack extends ConfigurationContainer {
             // region @boringdroid
             // When stack's windowing mode changed, we will persist this windowing mode for top activity.
             if (topActivity != null) {
-                mWindowManager.savePackageWindowingMode(topActivity.appInfo.packageName, windowingMode);
+                BoringdroidManager.savePackageWindowingMode(
+                        WindowManagerService.getWMSContext(), topActivity.appInfo.packageName, windowingMode
+                );
             }
             // endregion
 
@@ -3152,7 +3155,9 @@ class ActivityStack extends ConfigurationContainer {
         // windowing mode in setWindowingMode will be used to save windowing mode when
         // changing windowing mode dynamically after task created, for example clicking
         // maximize button to move task to fullscreen stack from freefrom stack.
-        mWindowManager.savePackageWindowingMode(r.packageName, getWindowingMode());
+        BoringdroidManager.savePackageWindowingMode(
+                WindowManagerService.getWMSContext(), r.packageName, getWindowingMode()
+        );
         // endregion
         final boolean allowMoveToFront = options == null || !options.getAvoidMoveToFront();
         // mLaunchTaskBehind tasks get placed at the back of the task stack.

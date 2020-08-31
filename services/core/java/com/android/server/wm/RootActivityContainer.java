@@ -111,6 +111,7 @@ import android.util.proto.ProtoOutputStream;
 import android.view.Display;
 import android.view.DisplayInfo;
 
+import com.android.internal.BoringdroidManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.ResolverActivity;
 import com.android.server.LocalServices;
@@ -2265,7 +2266,8 @@ class RootActivityContainer extends ConfigurationContainer
             packageName = intent.getComponent().getPackageName();
         }
         windowingMode = packageName == null
-                ? windowingMode : mWindowManager.getPackageWindowingMode(packageName);
+                ? windowingMode
+                : BoringdroidManager.getPackageWindowingMode(WindowManagerService.getWMSContext(), packageName);
         if (windowingMode == WINDOWING_MODE_FREEFORM) {
             aOptions.setLaunchWindowingMode(windowingMode);
         }

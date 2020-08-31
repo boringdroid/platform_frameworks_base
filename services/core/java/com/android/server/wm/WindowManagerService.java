@@ -157,7 +157,6 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerExecutor;
 import android.os.IBinder;
@@ -180,7 +179,6 @@ import android.os.SystemProperties;
 import android.os.SystemService;
 import android.os.Trace;
 import android.os.UserHandle;
-import android.os.UserManager;
 import android.os.WorkSource;
 import android.provider.DeviceConfig;
 import android.provider.Settings;
@@ -7817,126 +7815,11 @@ public class WindowManagerService extends IWindowManager.Stub
         }
     }
     // region @boringdroid
-    private static final String PACKAGE_WINDOWING_MODE_NAME = "package-windowing-mode";
-    private static final String PACKAGE_WINDOW_BOUNDS_NAME = "package-window-bounds";
-
-    private static boolean isDataSystemDirNotReady(Context context) {
-        UserManager userManager = context.getSystemService(UserManager.class);
-        return !(userManager != null && userManager.isUserUnlockingOrUnlocked(UserHandle.myUserId()));
-    }
-
-    private static File getPackageWindowingModeFile() {
-        return new File(
-                Environment.getDataSystemCeDirectory(UserHandle.myUserId())
-                        + File.separator + PACKAGE_WINDOWING_MODE_NAME
-        );
-    }
-
-    private static File getPackageWindowBoundsName() {
-        return new File(
-                Environment.getDataSystemCeDirectory(UserHandle.myUserId())
-                        + File.separator + PACKAGE_WINDOW_BOUNDS_NAME
-        );
-    }
-
     /**
      * @hide
      */
-    public static WindowManagerService getWMSInstance() {
-        return getInstance();
-    }
-
-    /**
-     * @hide
-     */
-    public void savePackageWindowingMode(String packageName,
-                                         @WindowConfiguration.WindowingMode int windowingMode) {
-
-        if (isDataSystemDirNotReady(mContext)) {
-            Slog.e(TAG, "Calling savePackageWindowingMode with package " + packageName
-                    + ", and mode " + windowingMode + ", before file is ready");
-            return;
-        }
-        SharedPreferences sharedPreferences =
-                mContext.getSharedPreferences(getPackageWindowingModeFile(), Context.MODE_PRIVATE);
-        sharedPreferences.edit().putInt(packageName, windowingMode).apply();
-    }
-
-    /**
-     * @hide
-     */
-    public @WindowConfiguration.WindowingMode int getPackageWindowingMode(String packageName) {
-        if (isDataSystemDirNotReady(mContext)) {
-            Slog.e(TAG, "Calling getPackageWindowingMode with package " + packageName
-                    + ", before file is ready");
-            return WindowConfiguration.WINDOWING_MODE_UNDEFINED;
-        }
-        // We only enable freeform when systemui plugin enabled.
-        if (!SystemProperties.getBoolean("persist.sys.pcmode.enabled", false)) {
-            return WindowConfiguration.WINDOWING_MODE_UNDEFINED;
-        }
-        // If the package is in the multi window black list, it will run in default
-        // windowing mode.
-        if (isInMultiWindowDisallowList(packageName)) {
-            return WindowConfiguration.WINDOWING_MODE_UNDEFINED;
-        }
-        SharedPreferences sharedPreferences =
-                mContext.getSharedPreferences(getPackageWindowingModeFile(), Context.MODE_PRIVATE);
-        // We hope the default windowing mode is freeform.
-        return sharedPreferences.getInt(packageName, WindowConfiguration.WINDOWING_MODE_FREEFORM);
-    }
-
-    /**
-     * @hide
-     */
-    public void savePackageWindowBounds(String packageName, Rect bounds) {
-        if (isDataSystemDirNotReady(mContext)) {
-            Slog.e(TAG, "Calling savePackageWindowBounds with package " + packageName
-                    + ", and bounds " + bounds + ", before file is ready");
-            return;
-        }
-        SharedPreferences sharedPreferences =
-                mContext.getSharedPreferences(getPackageWindowBoundsName(), Context.MODE_PRIVATE);
-        Rect tempBounds = new Rect(bounds);
-        sharedPreferences
-                .edit()
-                .putInt(packageName + "-left", tempBounds.left)
-                .putInt(packageName + "-top", tempBounds.top)
-                .putInt(packageName + "-right", tempBounds.right)
-                .putInt(packageName + "-bottom", tempBounds.bottom)
-                .apply();
-    }
-
-    /**
-     * @hide
-     */
-    public Rect getPackageWindowBounds(String packageName) {
-        if (isDataSystemDirNotReady(mContext)) {
-            Slog.e(TAG, "Calling getPackageWindowBounds with package " + packageName
-                    + ", before file is ready");
-            return new Rect();
-        }
-        SharedPreferences sharedPreferences =
-                mContext.getSharedPreferences(getPackageWindowBoundsName(), Context.MODE_PRIVATE);
-        return new Rect(
-                sharedPreferences.getInt(packageName + "-left", 0),
-                sharedPreferences.getInt(packageName + "-top", 0),
-                sharedPreferences.getInt(packageName + "-right", 0),
-                sharedPreferences.getInt(packageName + "-bottom", 0)
-        );
-    }
-
-    private boolean isInMultiWindowDisallowList(String packageName) {
-        if (packageName == null) {
-            return false;
-        }
-        if (packageName.equals("android")) {
-            return true;
-        }
-        if (packageName.contains("com.android.systemui")) {
-            return true;
-        }
-        return false;
+    public static Context getWMSContext() {
+        return getInstance().mContext;
     }
     // endregion
 }

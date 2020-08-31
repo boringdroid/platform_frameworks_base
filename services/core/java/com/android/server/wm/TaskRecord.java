@@ -123,6 +123,7 @@ import android.util.proto.ProtoOutputStream;
 import android.view.Display;
 import android.view.DisplayInfo;
 
+import com.android.internal.BoringdroidManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.IVoiceInteractor;
 import com.android.internal.util.XmlUtils;
@@ -648,7 +649,9 @@ class TaskRecord extends ConfigurationContainer {
                 && mStack.getWindowingMode() == WINDOWING_MODE_FREEFORM
                 && !savedBounds.isEmpty()
                 && packageName != null) {
-            WindowManagerService.getWMSInstance().savePackageWindowBounds(packageName, savedBounds);
+            BoringdroidManager.savePackageWindowBounds(
+                    WindowManagerService.getWMSContext(), packageName, savedBounds
+            );
         }
     }
     // endregion
@@ -2385,7 +2388,8 @@ class TaskRecord extends ConfigurationContainer {
             }
             mLastNonFullscreenBounds =
                     packageName != null
-                            ? WindowManagerService.getWMSInstance().getPackageWindowBounds(packageName)
+                            ? BoringdroidManager.getPackageWindowBounds(
+                                    WindowManagerService.getWMSContext(), packageName)
                             : new Rect();
             if (!mLastNonFullscreenBounds.isEmpty()) {
                 return mLastNonFullscreenBounds;
