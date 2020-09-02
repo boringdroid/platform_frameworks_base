@@ -54,6 +54,9 @@ public class CaptionWindowDecoration extends WindowDecoration<WindowDecorLinearL
     private RelayoutParams mRelayoutParams = new RelayoutParams();
     private final RelayoutResult<WindowDecorLinearLayout> mResult =
             new RelayoutResult<>();
+    // region @boringdroid
+    private int mWindowCornerRadius = 8;
+    // endregion
 
     CaptionWindowDecoration(
             Context context,
@@ -69,6 +72,9 @@ public class CaptionWindowDecoration extends WindowDecoration<WindowDecorLinearL
         mHandler = handler;
         mChoreographer = choreographer;
         mSyncQueue = syncQueue;
+        // region @boringdroid
+        mWindowCornerRadius = (int) context.getResources().getDimension(R.dimen.decor_corner_radius);
+        // endregion
     }
 
     void setCaptionListeners(
@@ -116,6 +122,9 @@ public class CaptionWindowDecoration extends WindowDecoration<WindowDecorLinearL
         mRelayoutParams.mCaptionHeightId = getCaptionHeightId();
         mRelayoutParams.mShadowRadiusId = shadowRadiusID;
         mRelayoutParams.mApplyStartTransactionOnDraw = applyStartTransactionOnDraw;
+        // region @boringdroid
+        mRelayoutParams.mCornerRadius = mWindowCornerRadius;
+        // endregion
 
         relayout(mRelayoutParams, startT, finishT, wct, oldRootView, mResult);
         // After this line, mTaskInfo is up-to-date and should be used instead of taskInfo
