@@ -5675,8 +5675,17 @@ public class WindowManagerService extends IWindowManager.Stub
 
     @Override
     public void setShelfHeight(boolean visible, int shelfHeight) {
-        mAtmInternal.enforceCallerIsRecentsOrHasPermission(android.Manifest.permission.STATUS_BAR,
-                "setShelfHeight()");
+        // region @boringdroid
+        try {
+            mAtmInternal.enforceCallerIsRecentsOrHasPermission(android.Manifest.permission.STATUS_BAR,
+                    "setShelfHeight()");
+        } catch (SecurityException e) {
+            Slog.e(TAG, "Need permision android.Manifest.permission.STATUS_BAR for setShelfHeight", e);
+            return;
+        }
+        // mAtmInternal.enforceCallerIsRecentsOrHasPermission(android.Manifest.permission.STATUS_BAR,
+        //         "setShelfHeight()");
+        // endregion
         synchronized (mGlobalLock) {
             getDefaultDisplayContentLocked().getPinnedStackController().setAdjustedForShelf(visible,
                     shelfHeight);
