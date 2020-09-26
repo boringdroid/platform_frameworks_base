@@ -1527,6 +1527,12 @@ final class ActivityRecord extends ConfigurationContainer {
         }
 
         stack.moveToFront(reason, task);
+        // region @boringdroid
+        // We should notify task moved to front event if we change focused task
+        if (task != null) {
+            mAtmService.getTaskChangeNotificationController().notifyTaskMovedToFront(task.getTaskInfo());
+        }
+        // endregion
         // Report top activity change to tracking services and WM
         if (mRootActivityContainer.getTopResumedActivity() == this) {
             // TODO(b/111361570): Support multiple focused apps in WM
