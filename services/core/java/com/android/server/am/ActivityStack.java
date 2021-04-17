@@ -1080,6 +1080,12 @@ class ActivityStack<T extends StackWindowController> extends ConfigurationContai
 
         display.positionChildAtTop(this);
         mStackSupervisor.setFocusStackUnchecked(reason, this);
+        // region @boringdroid
+        // If the task is moved to front of the top stack, we should notify the listener.
+        if (isTopStackOnDisplay()) {
+            mService.mTaskChangeNotificationController.notifyTaskStackChanged();
+        }
+        // endregion
         if (task != null) {
             insertTaskAtTop(task, null);
             return;
