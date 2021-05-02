@@ -184,6 +184,11 @@ public final class PhoneStateMonitor {
         if (runningTaskInfo == null) {
             return false;
         } else {
+            // region @boringdroid
+            if (runningTaskInfo.topActivity == null) {
+                return false;
+            }
+            // endregion
             return runningTaskInfo.topActivity.equals(mDefaultHome);
         }
     }
