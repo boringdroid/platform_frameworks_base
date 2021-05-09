@@ -16,15 +16,19 @@
 
 package com.android.internal;
 
+import android.app.Service;
 import android.app.WindowConfiguration;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Environment;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Slog;
+import android.view.IWindowManager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -84,9 +88,8 @@ public class BoringdroidManager {
 
     public static void savePackageWindowingMode(Context context,
                                                 String packageName,
-                                                @WindowConfiguration.WindowingMode
-                                                        int windowingMode) {
-        if (BoringdroidManager.isDataSystemDirNotReady(context)) {
+                                                @WindowConfiguration.WindowingMode int windowingMode) {
+        if (isDataSystemDirNotReady(context)) {
             Slog.e(TAG, "Calling savePackageWindowingMode with package " + packageName
                     + ", and mode " + windowingMode + ", before file is ready");
             return;
@@ -96,9 +99,80 @@ public class BoringdroidManager {
         sharedPreferences.edit().putInt(packageName, windowingMode).apply();
     }
 
+    /**
+     * Save package overlay windowing mode to overlay file directly.
+     *
+     * @param context       The {@link Context} instance to retrieve shared preferences.
+     * @param packageName   The package name will be set.
+     * @param windowingMode The windowing mode will be set.
+     */
+    public static void savePackageOverlayWindowingMode(Context context,
+                                                       String packageName,
+                                                       @WindowConfiguration.WindowingMode int windowingMode) {
+        if (isDataSystemDirNotReady(context)) {
+            Slog.e(TAG, "Calling savePackageWindowingMode with package " + packageName
+                    + ", and mode " + windowingMode + ", before file is ready");
+            return;
+        }
+        SharedPreferences sharedPreferences =
+                context.getSharedPreferences(getPackageWindowingModeOverlayFile(), Context.MODE_PRIVATE);
+        sharedPreferences.edit().putInt(packageName, windowingMode).apply();
+    }
+
+    public static void savePackageOverlayWindowingMode(String packageName,
+                                                       @WindowConfiguration.WindowingMode int windowingMode) {
+        IWindowManager windowManager = IWindowManager.Stub.asInterface(
+                ServiceManager.getService(Service.WINDOW_SERVICE));
+        try {
+            windowManager.savePackageOverlayWindowingMode(packageName, windowingMode);
+        } catch (RemoteException e) {
+            Slog.e(TAG, "Failed to call IWindowManager#savePackageOverlayWindowingMode");
+        }
+    }
+
+    /**
+     * Get package overlay windowing mode from overlay file.
+     *
+     * @param context     The {@link Context} instance to retrieve shared preferences.
+     * @param packageName The package name will be retrieved.
+     * @return Returns the windowing mode of provided package name if existing, otherwise
+     * returns {@link WindowConfiguration#WINDOWING_MODE_UNDEFINED}.
+     */
+    public static @WindowConfiguration.WindowingMode
+    int getPackageOverlayWindowingMode(Context context, String packageName) {
+        if (isDataSystemDirNotReady(context)) {
+            Slog.e(TAG, "Calling getPackageWindowingMode with package " + packageName
+                    + ", before file is ready");
+            return WindowConfiguration.WINDOWING_MODE_UNDEFINED;
+        }
+        context.reloadSharedPreferences();
+        SharedPreferences overlaySharedPreferences =
+                context.getSharedPreferences(
+                        getPackageWindowingModeOverlayFile(),
+                        Context.MODE_PRIVATE
+                );
+        int overlayWindowingMode =
+                overlaySharedPreferences.getInt(packageName, WindowConfiguration.WINDOWING_MODE_UNDEFINED);
+        Slog.d(TAG, "Found overlay windowing mode " + overlayWindowingMode
+                + ", for package " + packageName);
+        return overlayWindowingMode;
+    }
+
+    public static @WindowConfiguration.WindowingMode
+    int getPackageOverlayWindowingMode(String packageName) {
+        IWindowManager windowManager = IWindowManager.Stub.asInterface(
+                ServiceManager.getService(Service.WINDOW_SERVICE));
+        try {
+            return windowManager.getPackageOverlayWindowingMode(packageName);
+        } catch (RemoteException e) {
+            Slog.e(TAG, "Failed to call IWindowManager#getPackageOverlayWindowingMode");
+            return WindowConfiguration.WINDOWING_MODE_UNDEFINED;
+        }
+    }
+
     public static @WindowConfiguration.WindowingMode
     int getPackageWindowingMode(Context context, String packageName) {
-        if (BoringdroidManager.isDataSystemDirNotReady(context)) {
+        if (isDataSystemDirNotReady(context)) {
             Slog.e(TAG, "Calling getPackageWindowingMode with package " + packageName
                     + ", before file is ready");
             return WindowConfiguration.WINDOWING_MODE_UNDEFINED;
@@ -111,11 +185,12 @@ public class BoringdroidManager {
         //    whatever defined in that file. The frameworks will not change it, and leave it to
         //    other system apps or user. If you want to set specific package to specific windowing
         //    mode, just to modify it with key for package name and int value for windowing mode,
-        //    based on WindowConfiguration definition.
+        //    based on WindowConfiguration definition. But if you set it to UNDEFINED, it will
+        //    also fallback to the following config.
         // 4. If non of above, we will try to get windowing mode of package from saved shared
         //    preferences, what will be modified when user changing window mode with shortcut
         //    or decor caption bar. The default is WINDOWING_MODE_FREEFORM.
-        if (!BoringdroidManager.isPCModeEnabled()) {
+        if (!isPCModeEnabled()) {
             return WindowConfiguration.WINDOWING_MODE_UNDEFINED;
         }
         // If the package is in the multi window black list, it will run in default
@@ -132,7 +207,7 @@ public class BoringdroidManager {
         int overlayWindowingMode = overlaySharedPreferences.getInt(packageName, -1);
         Slog.d(TAG, "Found overlay windowing mode " + overlayWindowingMode
                 + ", for package " + packageName);
-        if (overlayWindowingMode != -1) {
+        if (overlayWindowingMode != -1 && overlayWindowingMode != WindowConfiguration.WINDOWING_MODE_UNDEFINED) {
             return overlayWindowingMode;
         }
         SharedPreferences sharedPreferences =
@@ -142,7 +217,7 @@ public class BoringdroidManager {
     }
 
     public static void savePackageWindowBounds(Context context, String packageName, Rect bounds) {
-        if (BoringdroidManager.isDataSystemDirNotReady(context)) {
+        if (isDataSystemDirNotReady(context)) {
             Slog.e(TAG, "Calling savePackageWindowBounds with package " + packageName
                     + ", and bounds " + bounds + ", before file is ready");
             return;
@@ -160,7 +235,7 @@ public class BoringdroidManager {
     }
 
     public static Rect getPackageWindowBounds(Context context, String packageName) {
-        if (BoringdroidManager.isDataSystemDirNotReady(context)) {
+        if (isDataSystemDirNotReady(context)) {
             Slog.e(TAG, "Calling getPackageWindowBounds with package " + packageName
                     + ", before file is ready");
             return new Rect();

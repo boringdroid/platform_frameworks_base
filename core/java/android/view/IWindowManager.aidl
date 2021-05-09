@@ -762,4 +762,8 @@ interface IWindowManager
      */
     void requestScrollCapture(int displayId, IBinder behindClient, int taskId,
             IScrollCaptureController controller);
+    // region @boringdroid
+    int getPackageOverlayWindowingMode(String packageName);
+    void savePackageOverlayWindowingMode(String packageName, int windowingMode);
+    // endregion
 }

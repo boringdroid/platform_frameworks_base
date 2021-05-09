@@ -258,6 +258,7 @@ import android.view.WindowManager.TransitionType;
 import android.view.WindowManagerGlobal;
 import android.view.WindowManagerPolicyConstants.PointerEventListener;
 
+import com.android.internal.BoringdroidManager;
 import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.os.BackgroundThread;
@@ -8280,6 +8281,20 @@ public class WindowManagerService extends IWindowManager.Stub
      */
     public static Context getWMSContext() {
         return getInstance().mContext;
+    }
+
+    /**
+     * @hide
+     */
+    public int getPackageOverlayWindowingMode(String packageName) {
+        return BoringdroidManager.getPackageOverlayWindowingMode(getWMSContext(), packageName);
+    }
+
+    /**
+     * @hide
+     */
+    public void savePackageOverlayWindowingMode(String packageName, int windowingMode) {
+        BoringdroidManager.savePackageOverlayWindowingMode(getWMSContext(), packageName, windowingMode);
     }
     // endregion
 }
