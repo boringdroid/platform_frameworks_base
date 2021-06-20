@@ -178,7 +178,7 @@ public class BoringdroidManager {
             return WindowConfiguration.WINDOWING_MODE_UNDEFINED;
         }
         // Okay, there is a checking chain for package windowing mode:
-        // 1. If pc mode is enabled, we should set all package to undefined, and let system
+        // 1. If pc mode is not enabled, we should set all package to undefined, and let system
         //    to calculate windowing mode based on package config.
         // 2. If package is in our defined pc disallowed list, we should set it to undefined.
         // 3. If package has windowing mode defined in overlay shared preferences, we should use
