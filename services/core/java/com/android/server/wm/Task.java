@@ -999,6 +999,14 @@ class Task extends WindowContainer<WindowContainer> {
         }
         mWindowLayoutAffinity =
                 info.windowLayout == null ? null : info.windowLayout.windowLayoutAffinity;
+        // region @boringdroid
+        // We only support to use package name as fallback window layout affinity when Activity doesn't
+        // declare window layout affinity explicitly. Is there any app that declares window layout affinity
+        // explicitly?
+        if (mWindowLayoutAffinity == null) {
+            mWindowLayoutAffinity = info.packageName;
+        }
+        // endregion
 
         final int intentFlags = intent == null ? 0 : intent.getFlags();
         if ((intentFlags & Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED) != 0) {
@@ -2098,7 +2106,9 @@ class Task extends WindowContainer<WindowContainer> {
         // back to its last state in a freeform display when it's launched in a freeform display
         // next time.
         if (getWindowConfiguration().getDisplayWindowingMode() != WINDOWING_MODE_FREEFORM) {
-            return;
+            // region @boringdroid
+            // return;
+            // endregion
         }
 
         // Saves the new state so that we can launch the activity at the same location.

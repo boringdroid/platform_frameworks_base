@@ -31,7 +31,6 @@ import android.util.SparseArray;
 import android.util.Xml;
 import android.view.DisplayInfo;
 
-import com.android.internal.BoringdroidManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.FastXmlSerializer;
 import com.android.server.LocalServices;
@@ -283,7 +282,19 @@ class LaunchParamsPersister {
             windowLayoutAffinity = task.mWindowLayoutAffinity;
         } else {
             ActivityInfo.WindowLayout layout = activity.info.windowLayout;
-            windowLayoutAffinity = layout == null ? null : layout.windowLayoutAffinity;
+            // region @boringdroid
+            // windowLayoutAffinity = layout == null ? null : layout.windowLayoutAffinity;
+            // We only support to use package name as fallback window layout affinity when Activity doesn't
+            // declare window layout affinity explicitly. Is there any app that declares window layout affinity
+            // explicitly?
+            if (layout != null && layout.windowLayoutAffinity != null) {
+                windowLayoutAffinity = layout.windowLayoutAffinity;
+            } else if (name != null) {
+                windowLayoutAffinity = name.getPackageName();
+            } else {
+                windowLayoutAffinity = null;
+            }
+            // endregion
         }
 
         outParams.reset();
@@ -302,6 +313,7 @@ class LaunchParamsPersister {
             for (int i = 0; i < candidates.size(); ++i) {
                 ComponentName candidate = candidates.valueAt(i);
                 final PersistableLaunchParams candidateParams = map.get(candidate);
+
                 if (candidateParams == null) {
                     continue;
                 }
@@ -326,15 +338,6 @@ class LaunchParamsPersister {
         }
         outParams.mWindowingMode = persistableParams.mWindowingMode;
         outParams.mBounds.set(persistableParams.mBounds);
-        // region @boringdroid
-        if (name != null
-                && BoringdroidManager.getPackageWindowingMode(
-                        WindowManagerService.getWMSContext(), name.getPackageName())
-                != WindowConfiguration.WINDOWING_MODE_FREEFORM) {
-            outParams.mWindowingMode = WindowConfiguration.WINDOWING_MODE_UNDEFINED;
-            outParams.mBounds.setEmpty();
-        }
-        // endregion
     }
 
     void removeRecordForPackage(String packageName) {
