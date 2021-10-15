@@ -321,12 +321,7 @@ public abstract class Window {
     @UnsupportedAppUsage
     private boolean mDestroyed;
 
-    // region @boringdroid
-    // Disable overlay with decor caption default, before we find why the system missed
-    // caption bar inset dispatching when window first opened.
-    // private boolean mOverlayWithDecorCaptionEnabled = true;
-    private boolean mOverlayWithDecorCaptionEnabled = false;
-    // endregion
+    private boolean mOverlayWithDecorCaptionEnabled = true;
     private boolean mCloseOnSwipeEnabled = false;
 
     // The current window attributes.
