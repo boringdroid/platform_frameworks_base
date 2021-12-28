@@ -50,6 +50,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.window.WindowContainerToken;
 
+import com.android.internal.BoringdroidManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.server.wm.LaunchParamsController.LaunchParams;
 import com.android.server.wm.LaunchParamsController.LaunchParamsModifier;
@@ -292,6 +293,23 @@ class TaskLaunchParamsModifier implements LaunchParamsModifier {
             }
             getTaskBounds(root, display, layout, resolvedMode, hasInitialBounds, outParams.mBounds);
         }
+        // region @boringdroid
+        else if (resolvedMode == WINDOWING_MODE_FREEFORM && BoringdroidManager.isPCModeEnabled()) {
+            // We should use similar AOSP's default bounds mechanism to assign bounds for task, that
+            // started on non-freeform display with freeform windowing mode.
+            if (outParams.mBounds.isEmpty()) {
+                if (source != null && source.inFreeformWindowingMode()
+                        && resolvedMode == WINDOWING_MODE_FREEFORM
+                        && outParams.mBounds.isEmpty()
+                        && source.getDisplayArea() == taskDisplayArea) {
+                    // Set bounds to be not very far from source activity.
+                    cascadeBounds(source.getConfiguration().windowConfiguration.getBounds(),
+                            display, outParams.mBounds);
+                }
+                getTaskBounds(root, display, layout, resolvedMode, hasInitialBounds, outParams.mBounds);
+            }
+        }
+        // endregion
 
         return RESULT_CONTINUE;
     }
