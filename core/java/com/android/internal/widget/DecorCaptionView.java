@@ -138,6 +138,7 @@ public class DecorCaptionView extends ViewGroup implements View.OnTouchListener,
         mOwner.getDecorView().setOutlineProvider(ViewOutlineProvider.BOUNDS);
         mMaximize = findViewById(R.id.maximize_window);
         // region @boringdroid
+        mBack = findViewById(R.id.back_window);
         mMinimize = findViewById(R.id.minimize_window);
         // endregion
         mClose = findViewById(R.id.close_window);
@@ -155,6 +156,9 @@ public class DecorCaptionView extends ViewGroup implements View.OnTouchListener,
                 mClickTarget = mMaximize;
             }
             // region @boringdroid
+            if (mBackRect.contains(x, y - mRootScrollY)) {
+                mClickTarget = mBack;
+            }
             if (mMinimizeRect.contains(x, y - mRootScrollY)) {
                 mClickTarget = mMinimize;
             }
@@ -297,12 +301,14 @@ public class DecorCaptionView extends ViewGroup implements View.OnTouchListener,
             captionHeight = mCaption.getBottom() - mCaption.getTop();
             mMaximize.getHitRect(mMaximizeRect);
             // region @boringdroid
+            mBack.getHitRect(mBackRect);
             mMinimize.getHitRect(mMinimizeRect);
             // endregion
             mClose.getHitRect(mCloseRect);
         } else {
             captionHeight = 0;
 	    // region @boringdroid
+	    mBackRect.setEmpty();
 	    mMinimizeRect.setEmpty();
 	    // endregion
             mMaximizeRect.setEmpty();
@@ -324,7 +330,7 @@ public class DecorCaptionView extends ViewGroup implements View.OnTouchListener,
         // region @boringdroid
         // mOwner.notifyRestrictedCaptionAreaCallback(mMaximize.getLeft(), mMaximize.getTop(),
         //         mClose.getRight(), mClose.getBottom());
-        mOwner.notifyRestrictedCaptionAreaCallback(mMinimize.getLeft(), mMinimize.getTop(),
+        mOwner.notifyRestrictedCaptionAreaCallback(mBack.getLeft(), mBack.getTop(),
                 mClose.getRight(), mClose.getBottom());
         // endregion
     }
@@ -400,6 +406,14 @@ public class DecorCaptionView extends ViewGroup implements View.OnTouchListener,
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
         // region @boringdroid
+	if (mClickTarget == mBack) {
+	    Context context = getContext();
+	    if (context instanceof Activity) {
+	        Activity activity = (Activity) context;
+		activity.onBackPressed();
+	    }
+	    return true;
+	}
         if (mClickTarget == mMinimize) {
             Context context = getContext();
             if (context instanceof Activity) {
@@ -432,7 +446,9 @@ public class DecorCaptionView extends ViewGroup implements View.OnTouchListener,
         return false;
     }
     // region @boringdroid
+    private View mBack;
     private View mMinimize;
+    private final Rect mBackRect = new Rect();
     private final Rect mMinimizeRect = new Rect();
 
     /**
