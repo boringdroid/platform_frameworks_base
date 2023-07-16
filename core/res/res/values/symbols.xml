@@ -2415,7 +2415,10 @@
   <java-symbol type="drawable" name="decor_maximize_button_dark" />
   <java-symbol type="drawable" name="decor_maximize_button_light" />
   <!-- region @boringdroid -->
+  <java-symbol type="id" name="back_window" />
   <java-symbol type="id" name="minimize_window" />
+  <java-symbol type="drawable" name="decor_back_button_dark" />
+  <java-symbol type="drawable" name="decor_back_button_light" />
   <java-symbol type="drawable" name="decor_minimize_button_dark" />
   <java-symbol type="drawable" name="decor_minimize_button_light" />
   <!-- endregion -->
