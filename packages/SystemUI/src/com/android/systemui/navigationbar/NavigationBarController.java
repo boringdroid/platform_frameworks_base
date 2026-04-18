@@ -30,6 +30,9 @@ import android.hardware.display.DisplayManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
+// region boringdroid
+import android.os.SystemProperties;
+// endregion
 import android.os.Trace;
 import android.os.UserHandle;
 import android.provider.Settings;
@@ -339,6 +342,18 @@ public class NavigationBarController implements
         if (display == null) {
             return;
         }
+
+        // region boringdroid
+        // BoringdroidSystemUI owns its own TaskbarWindow; don't create the stock
+        // NavigationBar on any display. Guards every createNavigationBar() caller
+        // (onDisplayReady, createNavigationBars, updateNavbarForTaskbar,
+        // recreateNavigationBar), avoiding a dependency on WMS's hasNavigationBar()
+        // which reads config_showNavigationBar at DisplayPolicy construction time
+        // -- before product overlays are guaranteed to be applied.
+        if (SystemProperties.getBoolean("persist.sys.systemuiplugin.enabled", false)) {
+            return;
+        }
+        // endregion
 
         final int displayId = display.getDisplayId();
         final boolean isOnDefaultDisplay = displayId == mDisplayTracker.getDefaultDisplayId();
