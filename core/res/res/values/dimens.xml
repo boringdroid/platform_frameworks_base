@@ -1025,4 +1025,12 @@
     <dimen name="handwriting_bounds_offset_top">40dp</dimen>
     <dimen name="handwriting_bounds_offset_right">10dp</dimen>
     <dimen name="handwriting_bounds_offset_bottom">40dp</dimen>
+
+    <!-- region boringdroid -->
+    <!-- Corner radius applied to freeform task surfaces by WMS when shell-side
+         caption rendering is disabled (persist.wm.debug.caption_on_shell=false).
+         When shell caption is enabled, the same value lives in WMShell's
+         decor_corner_radius and is applied by WindowDecoration instead. -->
+    <dimen name="freeform_decor_corner_radius">8dp</dimen>
+    <!-- endregion -->
 </resources>

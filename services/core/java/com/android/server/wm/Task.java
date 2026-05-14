@@ -177,6 +177,9 @@ import android.view.RemoteAnimationAdapter;
 import android.view.Surface;
 import android.view.SurfaceControl;
 import android.view.TaskTransitionSpec;
+// region boringdroid
+import android.view.ViewRootImpl;
+// endregion
 import android.view.WindowManager;
 import android.view.WindowManager.TransitionOldType;
 import android.window.ITaskOrganizer;
@@ -614,6 +617,15 @@ class Task extends TaskFragment {
     ActivityRecord mChildPipActivity;
 
     boolean mLastSurfaceShowing;
+
+    // region boringdroid
+    /** Last corner radius applied to {@link #mSurfaceControl} by
+     * {@link #updateFreeformCornerRadius(SurfaceControl.Transaction)}.
+     * Cached so we only push a transaction when the value actually changes.
+     * Only ever non-zero when caption_on_shell is off — when WMShell renders
+     * the caption, WindowDecoration owns the corner radius instead. */
+    private float mLastAppliedCornerRadius = 0f;
+    // endregion
 
     boolean mAlignActivityLocaleWithTask = false;
 
@@ -3319,7 +3331,34 @@ class Task extends TaskFragment {
             mOverlayHost.setVisibility(t, visible);
         }
         mLastSurfaceShowing = show;
+        // region boringdroid
+        updateFreeformCornerRadius(t);
+        // endregion
     }
+
+    // region boringdroid
+    /**
+     * Round the corners of freeform task surfaces when the WMShell-side caption is
+     * disabled (persist.wm.debug.caption_on_shell=false). When shell caption is on,
+     * WindowDecoration applies the same radius to the task surface itself, so this
+     * is a no-op to avoid two writers fighting over the same SurfaceControl.
+     */
+    private void updateFreeformCornerRadius(SurfaceControl.Transaction t) {
+        if (mSurfaceControl == null) {
+            return;
+        }
+        final float target =
+                (inFreeformWindowingMode() && !ViewRootImpl.CAPTION_ON_SHELL)
+                        ? mWmService.mContext.getResources().getDimension(
+                                com.android.internal.R.dimen.freeform_decor_corner_radius)
+                        : 0f;
+        if (target == mLastAppliedCornerRadius) {
+            return;
+        }
+        t.setCornerRadius(mSurfaceControl, target);
+        mLastAppliedCornerRadius = target;
+    }
+    // endregion
 
     @Override
     protected void applyAnimationUnchecked(WindowManager.LayoutParams lp, boolean enter,
